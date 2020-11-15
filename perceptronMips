@@ -167,4 +167,5 @@
 		addi $s0, $s0, 4
 		j FORTESTES
 		
-	FIMFORTESTES: jr $ra
+	FIMFORTESTES: li $v0, 10
+	syscall
