@@ -1,0 +1,170 @@
+.data
+	msgWeight1: .asciiz "\n Insert weight1's value: \n"
+	msgSaidaNeuronio: .asciiz "\n Saída neurônio: "
+	msgErro: .asciiz "\n Erro: "
+	msgPeso0Att: .asciiz "\n Peso 0 atualizado para: "
+	msgPeso1Att: .asciiz "\n Peso 1 atualizado para: "
+	msgFimTreino: .asciiz "\n Fim do treinamento."
+	msgIniciandoTestes: .asciiz "\n Iniciando testes..."
+	plus: .asciiz " + "
+	equals: .asciiz " = "
+	novaLinha: .asciiz "\n"
+	
+	
+	weight0: .float 0.0
+	weight1: .float 0.8 
+	epocas: .word 3 # aumente para aumentar a veracidade do resultado
+	contagem: .word 0
+	taxaAprendizado: .float 0.05
+	erro: .float 0.0
+	saidaNeuronio: .float 0.0
+	saidaDesejada: .float 0.0
+	#examples
+	integer: .word 13
+	#array
+	array: .space 20
+	
+	zero: .float 0.0
+	um: .float 1.0
+	dois: .float 2.0
+	tres: .float 3.0
+	quatro: .float 4.0
+	cinco: .float 5.0
+	
+.text
+	#li $v0, 2
+	#lwc1 $f12, weight1
+	#syscall
+	
+	#filling the array //////////////////////////////////////////
+	# $t0 = i
+	addi $t0, $zero, 0
+	lwc1 $f2, um
+	swc1 $f2, array($t0)
+	lwc1 $f2, dois
+	addi $t0, $t0, 4
+	swc1 $f2, array($t0)
+	lwc1 $f2, tres
+	addi $t0, $t0, 4
+	swc1 $f2, array($t0)
+	lwc1 $f2, quatro
+	addi $t0, $t0, 4
+	swc1 $f2, array($t0)
+	lwc1 $f2, cinco
+	addi $t0, $t0, 4
+	swc1 $f2, array($t0)
+	
+	# cleaning registers /////
+	lwc1 $f2, weight0
+	#training start //////////////////////////////////////////
+	
+	INICIOTREINAMENTO: addi $s0, $zero, 0 # $s0 = contagem
+	lw $s1, epocas # epocas
+	lwc1 $f0, weight0
+	lwc1 $f1, weight1
+	lwc1 $f10, zero # ZERO
+	lwc1 $f8, taxaAprendizado
+
+	addi $s2, $zero, 0 # $s2 = i do for
+	INICIOWHILE: beq $s0, $s1, FIMTREINAMENTO
+		addi $s2, $zero, 0 # zerando o i
+		INICIOFOR: beq $s2, 20, FIMFOR
+			lwc1 $f2, array($s2) # $f2 = array[i]
+			add.s $f3, $f2, $f2 # $f3 = saidaDesejada
+			mul.s $f4, $f2, $f0 # $f4 = array[i] * weight0
+			mul.s $f5, $f2, $f1 # $f5 = array[i] * weight1
+			add.s $f4, $f4, $f5 #$f4 = saidaNeuronio
+			
+			li $v0, 4 # printando "Saída neurônio: "
+			la $a0, msgSaidaNeuronio
+			syscall
+			li $v0, 2 # printando a saída do neurônio
+			add.s $f12, $f4, $f10
+			syscall
+			
+			c.eq.s $f3, $f4
+			bc1t FIMFOR
+			sub.s $f6, $f3, $f4  # $f6 = erro
+			
+			
+			li $v0, 4 # printado "Erro: "
+			la $a0, msgErro
+			syscall
+			li $v0, 2 # printando o erro
+			add.s $f12, $f6, $f10
+			syscall
+			
+			mul.s $f7, $f6, $f8 # $f7 = erro * taxaAprendizado
+			mul.s $f7, $f7, $f2
+			add.s $f0, $f0, $f7 # resumo:  weight0 =  weight0 + erro * taxaAprendizado * array[i]
+			
+			li $v0, 4 # avisando a atualização do peso 0
+			la $a0, msgPeso0Att
+			syscall
+			li $v0, 2 # printando o valor de weight 0
+			add.s $f12, $f0, $f10
+			syscall
+			
+			mul.s $f9, $f6, $f8 # $f9 = erro * taxaAprendizado
+			mul.s $f9, $f9, $f2
+			add.s $f1, $f1, $f9 # resumo: weight1 = weight1 + erro * taxaAprendizado * array[i]
+			
+			li $v0, 4 # avisando a atualização do peso 1
+			la $a0, msgPeso1Att
+			syscall
+			li $v0, 2 # printando o valor de weight 1
+			add.s $f12, $f1, $f10
+			syscall
+			
+			addi $s2, $s2, 4
+			
+			j INICIOFOR
+			
+		FIMFOR: addi $s0, $s0, 1
+		j INICIOWHILE
+	FIMTREINAMENTO: li $v0, 4 # avisando o fim do treinamento
+	la $a0, msgFimTreino
+	syscall
+	li $v0, 4 # avisando o início do teste
+	la $a0, msgIniciandoTestes
+	syscall
+	
+	li $v0, 4
+	la $a0, novaLinha
+	syscall
+	
+	addi $s0, $zero, 0 #s0 = i do forTeste
+	FORTESTES: beq $s0, 20, FIMFORTESTES
+		lwc1 $f2, array($s0) # $f2 = array[i]
+		mul.s $f4, $f2, $f0 # $f4 = array[i] * peso0
+		mul.s $f5, $f2, $f1 # $f5 = array[i] * peso1
+		add.s $f11, $f4, $f5 # $f11 = result = (array[i] * peso0) + (array[i] * peso1)
+		
+		li $v0, 2
+		add.s $f12, $f2, $f10
+		syscall
+		
+		li $v0, 4
+		la $a0, plus
+		syscall
+		
+		li $v0, 2
+		add.s $f12, $f2, $f10
+		syscall
+		
+		li $v0, 4
+		la $a0, equals
+		syscall
+		
+		li $v0, 2
+		add.s $f12, $f11, $f10
+		syscall
+		
+		li $v0, 4
+		la $a0, novaLinha
+		syscall
+		
+		addi $s0, $s0, 4
+		j FORTESTES
+		
+	FIMFORTESTES: jr $ra
