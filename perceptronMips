@@ -1,5 +1,4 @@
 .data
-	msgWeight1: .asciiz "\n Insert weight1's value: \n"
 	msgSaidaNeuronio: .asciiz "\n Saída neurônio: "
 	msgErro: .asciiz "\n Erro: "
 	msgPeso0Att: .asciiz "\n Peso 0 atualizado para: "
@@ -14,16 +13,14 @@
 	weight0: .float 0.0
 	weight1: .float 0.8 
 	epocas: .word 3 # aumente para aumentar a veracidade do resultado
-	contagem: .word 0
 	taxaAprendizado: .float 0.05
-	erro: .float 0.0
 	saidaNeuronio: .float 0.0
 	saidaDesejada: .float 0.0
-	#examples
-	integer: .word 13
+	
 	#array
 	array: .space 20
 	
+	#valores
 	zero: .float 0.0
 	um: .float 1.0
 	dois: .float 2.0
@@ -32,12 +29,10 @@
 	cinco: .float 5.0
 	
 .text
-	#li $v0, 2
-	#lwc1 $f12, weight1
-	#syscall
 	
 	#filling the array //////////////////////////////////////////
 	# $t0 = i
+	
 	addi $t0, $zero, 0
 	lwc1 $f2, um
 	swc1 $f2, array($t0)
